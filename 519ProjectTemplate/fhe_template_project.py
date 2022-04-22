@@ -5,6 +5,10 @@ from eva.metric import valuation_mse
 import timeit
 import networkx as nx
 from random import random
+from os import mkdir
+
+# Helper packages
+import matplotlib.pyplot as plt
 
 # Using networkx, generate a random graph
 # You can change the way you generate the graph
@@ -135,21 +139,62 @@ def simulate(n):
 
 
 if __name__ == "__main__":
-    simcnt = 3 #The number of simulation runs, set it to 3 during development otherwise you will wait for a long time
+    bm_keys = ["NodeCount","PathLength","CompileTime","KeyGenerationTime","EncryptionTime","ExecutionTime","DecryptionTime","ReferenceExecutionTime","Mse"]
+
+    simcnt = 100 #The number of simulation runs, set it to 3 during development otherwise you will wait for a long time
     # For benchmarking you must set it to a large number, e.g., 100
-    #Note that file is opened in append mode, previous results will be kept in the file
-    resultfile = open("results.csv", "a")  # Measurement results are collated in this file for you to plot later on
-    resultfile.write("NodeCount,PathLength,SimCnt,CompileTime,KeyGenerationTime,EncryptionTime,ExecutionTime,DecryptionTime,ReferenceExecutionTime,Mse\n")
+    
+    try:
+        mkdir("results")
+    except:
+        pass
+
+    resultfile = open("results/results.csv", "w")  # Measurement results are collated in this file for you to plot later on
+    resultfile.write(",".join(bm_keys) + "\n")
     resultfile.close()
     
     print("Simulation campaing started:")
+    nodes = []
     for nc in range(36,64,4): # Node counts for experimenting various graph sizes
         n = nc
-        resultfile = open("results.csv", "a") 
+        resultfile = open("results/results.csv", "a")
+        node = {}
+        node["NodeCount"] = n
+        node["CompileTime"] = []
+        node["KeyGenerationTime"] = []
+        node["EncryptionTime"] = []
+        node["ExecutionTime"] = []
+        node["DecryptionTime"] = []
+        node["ReferenceExecutionTime"] = []
+        node["Mse"] = []
+
         for i in range(simcnt):
             #Call the simulator
             compiletime, keygenerationtime, encryptiontime, executiontime, decryptiontime, referenceexecutiontime, mse = simulate(n)
             res = str(n) + "," + str(i) + "," + str(compiletime) + "," + str(keygenerationtime) + "," +  str(encryptiontime) + "," +  str(executiontime) + "," +  str(decryptiontime) + "," +  str(referenceexecutiontime) + "," +  str(mse) + "\n"
             print(res)
             resultfile.write(res)
+            node["CompileTime"].append(compiletime)
+            node["KeyGenerationTime"].append(keygenerationtime)
+            node["EncryptionTime"].append(encryptiontime)
+            node["ExecutionTime"].append(executiontime)
+            node["DecryptionTime"].append(decryptiontime)
+            node["ReferenceExecutionTime"].append(referenceexecutiontime)
+            node["Mse"].append(mse)
+
+        nodes.append(node)
         resultfile.close()
+
+    for key in [k for k in bm_keys if k not in ["NodeCount", "PathLength"]]:
+        plt.cla()
+        for node in nodes:
+            if key in node:
+                plt.plot(list(range(simcnt)), node[key], label = f"Node count {node['NodeCount']}")
+        plt.xlabel("PathLength")
+        plt.ylabel(key)
+        plt.title(key)
+        plt.grid()
+        plt.legend()
+        plt.autoscale(enable=True, axis="y", tight=None)
+        plt.savefig(f"results/{key}.png")
+        # plt.show(block=False)
