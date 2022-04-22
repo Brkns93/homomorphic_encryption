@@ -42,6 +42,7 @@ RUN git clone https://github.com/microsoft/EVA.git \
     && cd examples/ 
 
 RUN pip3 install adhoccomputing \
-    && pip3 install networkx
+    && pip3 install networkx \
+    && pip3 install matplotlib
 
 COPY 519ProjectTemplate /development/519ProjectTemplate
