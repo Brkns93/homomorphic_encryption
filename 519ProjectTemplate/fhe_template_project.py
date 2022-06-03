@@ -13,19 +13,15 @@ import copy
 # Helper packages
 import matplotlib.pyplot as plt
 
-graph_size = 0
-reference_topological_sorts = []
 # Using networkx, generate a random directed acyclic graph
 def generateGraph(n, prob):
-    global reference_topological_sorts
     G = nx.gnp_random_graph(n, prob, directed=True)
     nodes = [(u,v) for (u,v) in G.edges() if u<v]
     DAG = nx.DiGraph(nodes)
-    reference_topological_sorts = list(nx.all_topological_sorts(DAG))
 
     plt.tight_layout()
     nx.draw_networkx(DAG, arrows=True)
-    plt.savefig("results/DAG.png", format="PNG")
+    plt.savefig(f"results/DAG_{n}.png", format="PNG")
     plt.clf()
 
     return DAG, nodes
@@ -35,7 +31,6 @@ def generateGraph(n, prob):
 # Assume there are n vertices
 # (i,j)th element of the adjacency matrix corresponds to (i*n + j)th element in the vector representations
 def serializeGraphZeroOne(GG,vec_size):
-    # n = GG.size()
     n = len(GG.nodes())
     graphdict = {}
     g = []
@@ -150,7 +145,7 @@ def simulate(n):
         "Iterations": [],
     }
 
-    m = 4096
+    m = 256
 
     print("Will start simulation for ", n)
     config = {}
@@ -241,7 +236,7 @@ if __name__ == "__main__":
     total_results = []
     bm_keys = ["Sim#", "NodeCount","TotalIteration","CompileTime","KeyGenerationTime","EncryptionTime","ExecutionTime","DecryptionTime","ReferenceExecutionTime"]
 
-    simcnt = 10 #The number of simulation runs, set it to 3 during development otherwise you will wait for a long time
+    simcnt = 6 #The number of simulation runs, set it to 3 during development otherwise you will wait for a long time
     
     try:
         mkdir("results")
@@ -253,7 +248,7 @@ if __name__ == "__main__":
     resultfile.close()
     
     print("Simulation campaing started:")
-    for nc in range(8, 20, 4): # Node counts for experimenting various graph sizes
+    for nc in range(6, 18, 4): # Node counts for experimenting various graph sizes
         n = nc
         resultfile = open("results/results.csv", "a")
 
